@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DATASHARK</title>
+    <style>
+        :root {
+            --primary: #FF0000;
+            --secondary: #1A1A1A;
+            --background: #0A0A0A;
+            --card-bg: #141414;
+            --text: #FFFFFF;
+            --text-secondary: #888888;
+            --border-color: #2A2A2A;
+            --glow: rgba(255, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, var(--glow) 0%, transparent 25%);
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+            animation: ambient 20s ease infinite;
+        }
+
+        @keyframes ambient {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-5%, 5%); }
+            50% { transform: translate(5%, -5%); }
+            75% { transform: translate(-5%, -5%); }
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.05;
+            z-index: -1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--primary), #ff6666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        h1::after {
+            content: 'DATASHARK';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), transparent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.5;
+            filter: blur(8px);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; filter: blur(8px); }
+            50% { opacity: 0.8; filter: blur(12px); }
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards 0.5s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .card:last-child {
+                grid-column: 1 / -1;
+                max-width: calc(100% - 2rem);
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .card {
+                max-width: 100%;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 0, 0, 0.1);
+            position: relative;
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .tags {
+                gap: 0.5rem;
+            }
+            
+            .tag {
+                padding: 0.4rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) perspective(1000px); }
+            50% { transform: translateY(-10px) perspective(1000px); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 0, 0, 0.2) 0%,
+                transparent 50%,
+                rgba(255, 0, 0, 0.1) 100%
+            );
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            animation: borderPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                rgba(255, 0, 0, 0.15) 0%,
+                transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        .card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            transform: translateZ(20px);
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .checkmark {
+            color: #22C55E;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            animation: checkmarkPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes checkmarkPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .tag {
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--primary);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: tagFloat 3s ease-in-out infinite;
+            animation-delay: calc(var(--tag-index, 0) * 0.2s);
+        }
+
+        @keyframes tagFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.3);
+            background: rgba(255, 0, 0, 0.15);
+        }
+
+        .tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -100%;
+                opacity: 0;
+            }
+            15% {
+                left: -100%;
+                opacity: 1;
+            }
+            35% {
+                left: 100%;
+                opacity: 1;
+            }
+            50% {
+                left: 100%;
+                opacity: 0;
+            }
+            100% {
+                left: 100%;
+                opacity: 0;
+            }
+        }
+
+        .live-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            text-decoration: none;
+            margin-top: 1.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .live-demo::after {
+            content: '→';
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .live-demo:hover::after {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix" class="matrix-bg"></canvas>
+
+    <div class="header">
+        <h1>DATASHARK</h1>
+        <p class="subtitle">Welcome to the most powerful data search bot on Telegram!<br>Secure, efficient, and lightning-fast data solutions at your fingertips.</p>
+    </div>
+
+    <div class="cards-container">
+        <div class="card">
+            <h2>Search Capabilities <span class="checkmark">✓</span></h2>
+            <div class="tags">
+                <span class="tag">Email</span>
+                <span class="tag">Username</span>
+                <span class="tag">IP Address</span>
+                <span class="tag">Password</span>
+                <span class="tag">Full Name</span>
+                <span class="tag">Hash</span>
+                <span class="tag">Domain</span>
+            </div>
+            <a href="https://t.me/datasharkbot" class="live-demo">Live Demo</a>
+        </div>
+
+        <div class="card">
+            <h2>Advanced Features</h2>
+            <div class="tags">
+                <span class="tag">IP WHOIS Lookup</span>
+                <span class="tag">Hash/Password Lookup</span>
+                <span class="tag">Database Statistics</span>
+                <span class="tag">Terms of Use</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Hash Support</h2>
+            <div class="tags">
+                <span class="tag">MD5 Hash</span>
+                <span class="tag">SHA1 Hash</span>
+                <span class="tag">SHA256 Hash</span>
+                <span class="tag">Advanced Hash Analysis</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix background effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
+        const drops = [];
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+
+        for(let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FF000010';
+            ctx.font = fontSize + 'px monospace';
+
+            for(let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        // Enhanced card animations
+        document.querySelectorAll('.card').forEach(card => {
+            // Add tag animation delays
+            card.querySelectorAll('.tag').forEach((tag, index) => {
+                tag.style.setProperty('--tag-index', index);
+            });
+
+            let bounds;
+
+            function rotateToMouse(e) {
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                
+                const leftX = mouseX - bounds.x;
+                const topY = mouseY - bounds.y;
+                
+                const center = {
+                    x: leftX - bounds.width / 2,
+                    y: topY - bounds.height / 2
+                };
+
+                const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
+                
+                requestAnimationFrame(() => {
+                    card.style.transform = `
+                        perspective(1000px)
+                        scale3d(1.05, 1.05, 1.05)
+                        rotate3d(
+                            ${center.y / 100},
+                            ${-center.x / 100},
+                            0,
+                            ${Math.log(distance) * 2}deg
+                        )
+                    `;
+
+                    // Update gradient position with smoother transition
+                    const gradientX = (leftX / bounds.width * 100).toFixed(2);
+                    const gradientY = (topY / bounds.height * 100).toFixed(2);
+                    card.style.setProperty('--mouse-x', `${gradientX}%`);
+                    card.style.setProperty('--mouse-y', `${gradientY}%`);
+                });
+            }
+
+            card.addEventListener('mouseenter', () => {
+                bounds = card.getBoundingClientRect();
+                document.addEventListener('mousemove', rotateToMouse);
+                // Pause floating animation on hover
+                card.style.animation = 'none';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                document.removeEventListener('mousemove', rotateToMouse);
+                requestAnimationFrame(() => {
+                    card.style.transform = `
+                        perspective(1000px)
+                        rotate3d(0, 0, 0, 0deg)
+                        scale3d(1, 1, 1)
+                    `;
+                    // Resume floating animation
+                    card.style.animation = 'cardFloat 6s ease-in-out infinite';
+                });
+            });
+        });
+
+        // Start matrix animation
+        setInterval(drawMatrix, 50);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html> 
